@@ -189,6 +189,7 @@ nav a:hover, nav a.active {
   gap: 32px;
   padding: 14px 0;
   overflow-x: auto;
+  justify-content: center;
 }
 
 .stat-item {
