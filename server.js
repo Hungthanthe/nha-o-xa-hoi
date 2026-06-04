@@ -16,7 +16,7 @@ app.use(express.static(path.join(__dirname)));
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const SYSTEM_PROMPT = `Bạn là trợ lý tư vấn chuyên về Nhà ở xã hội tại Hà Nội. Bạn có kiến thức chuyên sâu về:
+const BASE_PROMPT = `Bạn là trợ lý tư vấn chuyên về Nhà ở xã hội tại Hà Nội. Bạn có kiến thức chuyên sâu về:
 
 1. **Điều kiện mua/thuê nhà ở xã hội:**
    - Đối tượng được mua: cán bộ, công chức, viên chức; sĩ quan, hạ sĩ quan lực lượng vũ trang; công nhân trong khu công nghiệp; người có thu nhập thấp tại đô thị; người có công với cách mạng; người khuyết tật; hộ nghèo, cận nghèo tại đô thị; người cao tuổi cô đơn
@@ -44,11 +44,26 @@ const SYSTEM_PROMPT = `Bạn là trợ lý tư vấn chuyên về Nhà ở xã h
    - Được vay gói tín dụng ưu đãi lãi suất 4.8%/năm từ ngân hàng chính sách
    - Thời hạn thuê mua tối thiểu 5 năm
 
-5. **Thông tin dự án:** Dữ liệu các dự án tại Hà Nội bao gồm Thanh Lâm - Đại Thịnh 2 (Mê Linh), Uy Nỗ (Đông Anh), Hope Residences (Long Biên), Phú Lãm (Hà Đông), Ecohome 3 (Bắc Từ Liêm), Ngọc Hồi (Thanh Trì), Kim Hoa (Mê Linh), AZ Thăng Long (Nam Từ Liêm).
-
 Nguồn thông tin chính thức: https://soxaydung.hanoi.gov.vn
 
 Trả lời bằng tiếng Việt, thân thiện và dễ hiểu. Nếu không chắc chắn về thông tin cụ thể, hãy hướng dẫn người dùng liên hệ Sở Xây dựng Hà Nội (024 3976 1294) hoặc truy cập website chính thức.`;
+
+function buildSystemPrompt() {
+  try {
+    const data = fs.readFileSync(path.join(__dirname, 'data', 'projects.json'), 'utf8');
+    const projects = JSON.parse(data);
+    const projectList = projects.map(p => {
+      const price = p.priceFrom && p.priceTo ? `${p.priceFrom}-${p.priceTo} triệu/m²` : (p.priceFrom ? `từ ${p.priceFrom} triệu/m²` : 'chưa công bố');
+      const units = p.totalUnits ? `${p.totalUnits} căn` : 'chưa rõ';
+      const area = p.areaFrom && p.areaTo ? `${p.areaFrom}-${p.areaTo}m²` : 'chưa rõ';
+      return `- **${p.name}** (${p.district}): ${p.address} | Trạng thái: ${p.statusLabel} | Giá: ${price} | Số căn: ${units} | Diện tích: ${area} | CĐT: ${p.developer || 'chưa rõ'}${p.deadline ? ` | Hạn nộp hồ sơ: ${p.deadline}` : ''}`;
+    }).join('\n');
+
+    return `${BASE_PROMPT}\n\n5. **Danh sách dự án hiện tại (dữ liệu cập nhật ${new Date().toLocaleDateString('vi-VN')}):**\n${projectList}`;
+  } catch {
+    return BASE_PROMPT;
+  }
+}
 
 // API: lấy danh sách dự án
 app.get('/api/projects', (req, res) => {
@@ -102,7 +117,7 @@ app.post('/api/chat', async (req, res) => {
     const stream = await client.messages.stream({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1024,
-      system: SYSTEM_PROMPT,
+      system: buildSystemPrompt(),
       messages: messages.map(m => ({ role: m.role, content: m.content })),
     });
 
