@@ -115,7 +115,7 @@ async function mergeWithExisting(newData) {
   }
 
   // Thêm các bài viết mới dưới dạng source references
-  const crawledSources = newData.map((item, idx) => ({
+  const crawledSources = newData.filter(item => item.title && item.title.length > 5).map((item, idx) => ({
     id: existing.length + idx + 1,
     name: item.projectName || item.title,
     address: item.address || 'Hà Nội',
