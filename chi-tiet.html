@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chi tiết dự án - Nhà ở Xã hội Hà Nội</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-top">
+    Nguồn dữ liệu chính thức:
+    <a href="https://soxaydung.hanoi.gov.vn" target="_blank">soxaydung.hanoi.gov.vn</a>
+    &nbsp;|&nbsp; ĐT: 024 3976 1294
+  </div>
+  <div class="header-main">
+    <div class="logo">
+      <div class="logo-icon">🏠</div>
+      <div class="logo-text">
+        <h1>Nhà ở Xã hội Hà Nội</h1>
+        <p>Cổng thông tin tra cứu chính thức</p>
+      </div>
+    </div>
+    <nav>
+      <a href="index.html">Dự án</a>
+      <a href="#" onclick="document.getElementById('chatbot-btn').click();return false;">Hỏi đáp AI</a>
+      <a href="https://soxaydung.hanoi.gov.vn" target="_blank">Sở Xây dựng HN</a>
+    </nav>
+  </div>
+</header>
+
+<!-- DETAIL HERO -->
+<div class="detail-hero" id="detail-hero">
+  <div class="detail-hero-inner">
+    <a href="index.html" class="back-link">← Quay lại danh sách</a>
+    <div id="hero-loading">
+      <div class="skeleton-line" style="height:28px;width:60%;background:rgba(255,255,255,0.2);margin-bottom:12px"></div>
+      <div class="skeleton-line" style="height:18px;width:40%;background:rgba(255,255,255,0.15)"></div>
+    </div>
+    <div id="hero-content" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap">
+        <h2 class="detail-title" id="detail-name"></h2>
+        <span class="badge" id="detail-badge"></span>
+      </div>
+      <div class="detail-address">
+        <span>📍</span>
+        <span id="detail-address"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL CONTENT -->
+<div class="detail-content" id="detail-content" style="display:none">
+  <!-- LEFT COLUMN -->
+  <div class="detail-main">
+
+    <!-- Thông tin tổng quan -->
+    <div class="info-card">
+      <div class="info-card-header">📊 Thông tin dự án</div>
+      <div class="info-card-body">
+        <div class="info-grid">
+          <div>
+            <div class="info-row">
+              <span class="key">Chủ đầu tư</span>
+              <span class="val" id="d-developer">—</span>
+            </div>
+            <div class="info-row">
+              <span class="key">Tổng căn hộ</span>
+              <span class="val" id="d-units">—</span>
+            </div>
+            <div class="info-row">
+              <span class="key">Còn lại</span>
+              <span class="val" id="d-available">—</span>
+            </div>
+            <div class="info-row">
+              <span class="key">Số tầng</span>
+              <span class="val" id="d-floors">—</span>
+            </div>
+          </div>
+          <div>
+            <div class="info-row">
+              <span class="key">Diện tích</span>
+              <span class="val" id="d-area">—</span>
+            </div>
+            <div class="info-row">
+              <span class="key">Giá bán</span>
+              <span class="val" style="color:var(--primary)" id="d-price">—</span>
+            </div>
+            <div class="info-row">
+              <span class="key">Đợt mở bán</span>
+              <span class="val" id="d-round">—</span>
+            </div>
+            <div class="info-row">
+              <span class="key">Hạn nộp hồ sơ</span>
+              <span class="val" id="d-deadline">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mô tả -->
+    <div class="info-card">
+      <div class="info-card-header">📝 Giới thiệu dự án</div>
+      <div class="info-card-body">
+        <p id="d-description" style="font-size:14px;line-height:1.8;color:var(--gray-700)"></p>
+      </div>
+    </div>
+
+    <!-- Điều kiện -->
+    <div class="info-card">
+      <div class="info-card-header">✅ Điều kiện đăng ký</div>
+      <div class="info-card-body">
+        <ul class="checklist" id="d-conditions"></ul>
+      </div>
+    </div>
+
+    <!-- Hồ sơ -->
+    <div class="info-card">
+      <div class="info-card-header">📄 Hồ sơ cần chuẩn bị</div>
+      <div class="info-card-body">
+        <ul class="checklist" id="d-documents"></ul>
+      </div>
+    </div>
+
+    <!-- Vị trí bản đồ -->
+    <div class="info-card">
+      <div class="info-card-header">🗺 Vị trí dự án</div>
+      <div class="info-card-body" style="padding:0">
+        <div id="detail-map" style="height:320px;border-radius:0 0 10px 10px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="detail-sidebar">
+    <div class="sticky-sidebar">
+      <div class="action-card">
+        <div class="price-display">
+          <div class="price-range" id="s-price">—</div>
+          <div class="price-unit">triệu đồng/m²</div>
+        </div>
+        <a id="s-source-btn" href="#" target="_blank" class="btn btn-primary" style="display:block;text-align:center;margin-bottom:10px">
+          📋 Xem thông báo chính thức
+        </a>
+        <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="document.getElementById('chatbot-btn').click()">
+          💬 Hỏi AI về dự án này
+        </button>
+        <div class="contact-info">
+          Liên hệ Sở Xây dựng HN:<br>
+          <a href="tel:02439761294">024 3976 1294</a>
+        </div>
+      </div>
+
+      <!-- Thông tin nhanh -->
+      <div class="info-card" style="margin-top:16px">
+        <div class="info-card-header">⚡ Lưu ý quan trọng</div>
+        <div class="info-card-body" style="font-size:13px;line-height:1.7;color:var(--gray-700)">
+          <p>• Thông tin được tổng hợp từ <a href="https://soxaydung.hanoi.gov.vn" target="_blank" style="color:var(--primary)">Sở Xây dựng HN</a></p>
+          <p style="margin-top:6px">• Vui lòng xác nhận lại với chủ đầu tư trước khi nộp hồ sơ</p>
+          <p style="margin-top:6px">• Không mất phí khi đăng ký mua nhà ở xã hội</p>
+          <p style="margin-top:6px">• Kết quả bốc thăm sẽ được công bố công khai</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <h3>🏠 Nhà ở Xã hội Hà Nội</h3>
+      <p>Cổng thông tin tra cứu dự án nhà ở xã hội tại thành phố Hà Nội.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Liên kết hữu ích</h4>
+      <ul>
+        <li><a href="https://soxaydung.hanoi.gov.vn" target="_blank">Sở Xây dựng Hà Nội</a></li>
+        <li><a href="index.html">Danh sách dự án</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Liên hệ</h4>
+      <ul>
+        <li><a href="tel:02439761294">☎ 024 3976 1294</a></li>
+        <li><span>📍 16 Phùng Hưng, Hoàn Kiếm, HN</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Cổng thông tin Nhà ở Xã hội Hà Nội</p>
+  </div>
+</footer>
+
+<!-- CHATBOT -->
+<button id="chatbot-btn" title="Hỏi đáp về nhà ở xã hội">💬</button>
+<div id="chatbot-window">
+  <div class="chat-header">
+    <div class="chat-avatar">🤖</div>
+    <div class="chat-header-info">
+      <h4>Trợ lý Nhà ở Xã hội</h4>
+      <p>Hỏi bất cứ điều gì về NOXH Hà Nội</p>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">×</button>
+  </div>
+  <div class="chat-messages" id="chat-messages">
+    <div class="msg bot">
+      <div class="msg-avatar">🤖</div>
+      <div class="msg-bubble">
+        Xin chào! Tôi có thể giúp bạn giải đáp về dự án này hoặc bất kỳ câu hỏi nào về nhà ở xã hội Hà Nội.
+      </div>
+    </div>
+  </div>
+  <div class="chat-suggestions">
+    <button class="suggest-btn" onclick="sendSuggestion(this)">Điều kiện mua là gì?</button>
+    <button class="suggest-btn" onclick="sendSuggestion(this)">Cần chuẩn bị hồ sơ gì?</button>
+    <button class="suggest-btn" onclick="sendSuggestion(this)">Quy trình đăng ký thế nào?</button>
+  </div>
+  <div class="chat-input-area">
+    <input type="text" id="chat-input" placeholder="Nhập câu hỏi..." onkeydown="if(event.key==='Enter')sendMessage()">
+    <button class="chat-send" id="chat-send" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/chatbot.js"></script>
+<script>
+  // Load project detail from URL param
+  const params = new URLSearchParams(window.location.search);
+  const projectId = parseInt(params.get('id'));
+
+  function formatPrice(n) {
+    return n ? (n / 1000000).toFixed(0) + ' triệu' : '—';
+  }
+
+  function formatNumber(n) {
+    return n ? n.toLocaleString('vi-VN') : '—';
+  }
+
+  async function loadDetail() {
+    if (!projectId) { window.location.href = 'index.html'; return; }
+    try {
+      const res = await fetch(`/api/projects/${projectId}`);
+      if (!res.ok) throw new Error();
+      const p = await res.json();
+      renderDetail(p);
+    } catch {
+      // Fallback: load from JSON directly
+      try {
+        const res = await fetch('data/projects.json');
+        const all = await res.json();
+        const p = all.find(x => x.id === projectId);
+        if (p) renderDetail(p);
+        else window.location.href = 'index.html';
+      } catch {
+        window.location.href = 'index.html';
+      }
+    }
+  }
+
+  function renderDetail(p) {
+    document.title = `${p.name} - Nhà ở Xã hội Hà Nội`;
+    document.getElementById('hero-loading').style.display = 'none';
+    document.getElementById('hero-content').style.display = 'block';
+    document.getElementById('detail-content').style.display = 'grid';
+
+    document.getElementById('detail-name').textContent = p.name;
+    document.getElementById('detail-address').textContent = p.address;
+
+    const badge = document.getElementById('detail-badge');
+    badge.textContent = p.statusLabel;
+    badge.className = 'badge ' + (p.status === 'dang-mo-ban' ? 'badge-success' : p.status === 'sap-mo-ban' ? 'badge-warning' : 'badge-danger');
+
+    document.getElementById('d-developer').textContent = p.developer || '—';
+    document.getElementById('d-units').textContent = p.totalUnits ? formatNumber(p.totalUnits) + ' căn' : '—';
+    document.getElementById('d-available').textContent = p.availableUnits ? formatNumber(p.availableUnits) + ' căn' : '—';
+    document.getElementById('d-floors').textContent = p.floors ? p.floors + ' tầng' : '—';
+    document.getElementById('d-area').textContent = p.areaFrom && p.areaTo ? `${p.areaFrom}–${p.areaTo} m²` : '—';
+    document.getElementById('d-price').textContent = p.priceFrom && p.priceTo
+      ? `${(p.priceFrom/1000000).toFixed(1)}–${(p.priceTo/1000000).toFixed(1)} triệu/m²`
+      : '—';
+    document.getElementById('d-round').textContent = p.round || '—';
+    document.getElementById('d-deadline').textContent = p.deadline
+      ? new Date(p.deadline).toLocaleDateString('vi-VN')
+      : 'Chưa xác định';
+    document.getElementById('d-description').textContent = p.description || '—';
+
+    document.getElementById('s-price').textContent = p.priceFrom && p.priceTo
+      ? `${(p.priceFrom/1000000).toFixed(1)} – ${(p.priceTo/1000000).toFixed(1)}`
+      : '—';
+
+    const srcBtn = document.getElementById('s-source-btn');
+    srcBtn.href = p.sourceUrl || 'https://soxaydung.hanoi.gov.vn';
+
+    // Conditions
+    const condList = document.getElementById('d-conditions');
+    (p.conditions || []).forEach(c => {
+      const li = document.createElement('li');
+      li.textContent = c;
+      condList.appendChild(li);
+    });
+
+    // Documents
+    const docList = document.getElementById('d-documents');
+    (p.documents || []).forEach(d => {
+      const li = document.createElement('li');
+      li.textContent = d;
+      docList.appendChild(li);
+    });
+
+    // Mini map
+    if (p.lat && p.lng) {
+      const map = L.map('detail-map').setView([p.lat, p.lng], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+      L.marker([p.lat, p.lng])
+        .addTo(map)
+        .bindPopup(`<b>${p.name}</b><br>${p.address}`)
+        .openPopup();
+    }
+  }
+
+  loadDetail();
+</script>
+</body>
+</html>
