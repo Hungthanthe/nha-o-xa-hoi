@@ -177,4 +177,8 @@ async function main() {
   console.log('\n=== Hoàn tất ===');
 }
 
-main().catch(console.error);
+if (require.main === module) {
+  main().catch(console.error);
+}
+
+module.exports = { main };

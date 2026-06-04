@@ -4,6 +4,8 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const Anthropic = require('@anthropic-ai/sdk');
+const cron = require('node-cron');
+const { main: runCrawler } = require('./crawler');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -120,3 +122,14 @@ app.post('/api/chat', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server đang chạy tại http://localhost:${PORT}`);
 });
+
+// Tự động crawl mỗi thứ Hai lúc 2 giờ sáng
+cron.schedule('0 2 * * 1', async () => {
+  console.log('[Cron] Bắt đầu crawl dữ liệu tự động...');
+  try {
+    await runCrawler();
+    console.log('[Cron] Crawl hoàn tất.');
+  } catch (err) {
+    console.error('[Cron] Lỗi crawl:', err.message);
+  }
+}, { timezone: 'Asia/Ho_Chi_Minh' });
